@@ -1,9 +1,11 @@
 
 # Propelling Action for Testing and Treating (PATAT) model
 ---
-PATAT is a stochastic agent-based modelling framework developed to investigate the impact of using SARS-CoV-2 antigen rapid diagnostic tests (Ag-RDTs) in communities with demographic profiles, contact mixing patterns, levels of public health resources mirroring those often observed in low- and middle-income countries (LMICs). PATAT has been used in the Phase 2 study of the Access to COVID-19 Tools Accelerator (ACT-Accelerator) SARS-CoV-2 diagnostics modelling consortium, led by the Foundation for Innovative New Diagnostics (FIND). This study interrogates how different Ag-RDT availability and distribution strategies, including the implementation of community testing in households, schools, formal workplaces and regular mass gatherings (e.g. churches), as well as post-testing behavioural changes and public health interventions could impact onward disease transmissions and pandemic mitigation
 
-The analyses codes for the ACT-Accelerator Phase 2 study be found as a Jupyter Notebook [here](https://github.com/AMC-LAEB/PATAT-sim/blob/main/projects/ACTA_phase2/han-et-al_ACTA_phase2.ipynb). As the raw simulation data are very large in size (>200Gb), we have provided processed data files necessary to run the Jupyter Notebook.
+PATAT is a stochastic agent-based modelling framework developed to investigate the impact of using SARS-CoV-2 antigen rapid diagnostic tests (Ag-RDTs) in communities with demographic profiles, contact mixing patterns, levels of public health resources mirroring those often observed in low- and middle-income countries (LMICs). PATAT has been used in the Phase 2 study of the Access to COVID-19 Tools Accelerator (ACT-Accelerator) SARS-CoV-2 diagnostics modelling consortium, led by the Foundation for Innovative New Diagnostics (FIND). This study interrogates how different Ag-RDT availability and distribution strategies, including the implementation of community testing in households, schools, formal workplaces and regular mass gatherings (e.g. churches), as well as post-testing behavioural changes and public health interventions could impact onward disease transmissions and pandemic mitigation in LMICs. This original scientific paper describing this work is under review:
+> Strategies for using antigen rapid diagnostic tests to reduce transmission of SARS-CoV-2 in low- and middle-income countries: a mathematical modelling study. Alvin X. Han, Sarah Girdwood, Shaukat Khan, Jilian A. Sacks, Amy Toporowski, MD, Naushin Huq, Emma Hannay, Colin A. Russell, Brooke E. Nichols. (2022).
+
+The analyses codes for this study can be found as a Jupyter Notebook [here](https://github.com/AMC-LAEB/PATAT-sim/blob/main/projects/ACTA_phase2/han-et-al_ACTA_phase2.ipynb). As the raw simulation data are very large in size (>200Gb), we have provided processed data files necessary to run the Jupyter Notebook.
 
 ---
 
@@ -20,6 +22,7 @@ If you have any queries about the model and analyses, please contact <x.han@amst
 
 ## Requirements and installation of PATAT-sim
 ---
+
 ```PATAT-sim``` minimally requires Python 3.7 and Cython 0.29.23. Before installation, install Cython by ```pip```:
 
 ```pip install cython```
