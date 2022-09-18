@@ -25,8 +25,8 @@ mp.set_start_method("fork", force=True)
 import pyximport
 pyximport.install(setup_args={"include_dirs":np.get_include()},
                   reload_support=True)
-
-from PATAT import *
+import PATATv1 as p1
+import PATATv2 as p2
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -104,78 +104,156 @@ def simulate_read_excel(input_file):
         all_input_dicts[par_type] = input_pars_dict
     return all_input_dicts
 
-def run_sim(outfolder, input_pars_dict, total_days, start_date, i):
+def run_sim(outfolder, input_pars_dict, total_days, start_date, version, slim, i):
     np.random.seed(i)
 
     ### initlalise population ###
     pop_env_setup = input_pars_dict['Population']
-    pop = Population(**pop_env_setup)
+    if version > 1:
+        pop = p2.Population(**pop_env_setup)
+    else:
+        pop = p1.Population(**pop_env_setup)
     individuals_df, household_contact_layer_arr, entity_type_to_ids, social_contact_layer_arr, master_school_dict = pop.initialise()
 
-    # save household_contact_layer_arr as json
-    with gzip.open('%s/%04d_household_contact_layer_arr.json.gz'%(outfolder, i), 'w') as outfile:
-        json_str = json.dumps(household_contact_layer_arr, cls=NpEncoder) + "\n"
-        json_bytes = json_str.encode('utf-8')
-        outfile.write(json_bytes)
+    if slim == False:
+        # save household_contact_layer_arr as json
+        with gzip.open('%s/%04d_household_contact_layer_arr.json.gz'%(outfolder, i), 'w') as outfile:
+            json_str = json.dumps(household_contact_layer_arr, cls=NpEncoder) + "\n"
+            json_bytes = json_str.encode('utf-8')
+            outfile.write(json_bytes)
 
-    # save social_contact_layer_arr as json
-    with gzip.open('%s/%04d_social_contact_layer_arr.json.gz'%(outfolder, i), 'w') as outfile:
-        json_str = json.dumps(social_contact_layer_arr, cls=NpEncoder) + "\n"
-        json_bytes = json_str.encode('utf-8')
-        outfile.write(json_bytes)
+        # save social_contact_layer_arr as json
+        with gzip.open('%s/%04d_social_contact_layer_arr.json.gz'%(outfolder, i), 'w') as outfile:
+            json_str = json.dumps(social_contact_layer_arr, cls=NpEncoder) + "\n"
+            json_bytes = json_str.encode('utf-8')
+            outfile.write(json_bytes)
 
-    # save entity_type_to_ids as json
-    with gzip.open('%s/%04d_entity_type_to_ids.json.gz'%(outfolder, i), 'w') as outfile:
-        json_str = json.dumps(entity_type_to_ids, cls=NpEncoder) + "\n"
-        json_bytes = json_str.encode('utf-8')
-        outfile.write(json_bytes)
+        # save entity_type_to_ids as json
+        with gzip.open('%s/%04d_entity_type_to_ids.json.gz'%(outfolder, i), 'w') as outfile:
+            json_str = json.dumps(entity_type_to_ids, cls=NpEncoder) + "\n"
+            json_bytes = json_str.encode('utf-8')
+            outfile.write(json_bytes)
 
     ### run simulation ###
     sim_env_setup = input_pars_dict['Simulation']
-    sim = Simulation(individuals_df, household_contact_layer_arr, entity_type_to_ids, social_contact_layer_arr, master_school_dict, **sim_env_setup)
+    if version > 1:
+        sim = p2.Simulation(individuals_df, household_contact_layer_arr, entity_type_to_ids, social_contact_layer_arr, master_school_dict, **sim_env_setup)
+    else:
+        sim = p1.Simulation(individuals_df, household_contact_layer_arr, entity_type_to_ids, social_contact_layer_arr, master_school_dict, **sim_env_setup)
     sim_results = sim.execute(total_days, start_date=start_date, verbose=1)
 
-    weekdays_arr, pmap_age, epi_seird_arr, epi_isoquar_arr, Reff_arr, asymp_infector_arr, setting_incidence_arr, exposed_day_infectee, simpop_day_of_symptom_onset, length_of_infectious_period, setting_infectee, hcf_sample_collection_day_arr, untested_non_covid_symp_lack_of_test, total_symp_testing_results, total_community_testing_results, total_exit_testing_results, total_daily_quarantine_testing_results, eod_test_arr, reported_daily_case_arr, untested_symp_lack_of_test_arr, vtype_infector_to_infectee, simpop_infection_status, simpop_disease_severity, simpop_ct_arr, simpop_postest_setting, simpop_isoquar_arr, border_crossing_stats, simpop_travel_days, prev_tested_entities, hcf_contact_layer_arr = sim_results
+    if version > 1:
+        # version 2
+        weekdays_arr, pmap_age, pmap_adults_at_risk, pmap_vacc_status, epi_seird_arr, epi_isoquar_arr, Reff_arr, asymp_infector_arr, setting_incidence_arr, exposed_day_infectee, simpop_day_of_symptom_onset, length_of_infectious_period, setting_infectee, hcf_sample_collection_day_arr, untested_non_covid_symp_lack_of_test, total_symp_testing_results, total_selftest_results, total_community_testing_results, total_exit_testing_results, total_daily_quarantine_testing_results, eod_hcf_tav_stocks, eod_test_arr, reported_daily_case_arr, untested_symp_lack_of_test_arr, vtype_infector_to_infectee, simpop_infection_status, simpop_disease_severity, simpop_ct_arr, simpop_postest_setting, simpop_isoquar_arr, border_crossing_stats, simpop_travel_days, prev_tested_entities, hcf_contact_layer_arr, simpop_agents_w_av, simpop_agents_av_benefit = sim_results
 
-    # save results
-    np.savez("%s/%04d_sim_result_arrays.npz"%(outfolder, i), weekdays_arr=weekdays_arr,
-                                                             pmap_age=pmap_age,
-                                                             epi_seird_arr=epi_seird_arr,
-                                                             epi_isoquar_arr=epi_isoquar_arr,
-                                                             Reff_arr=Reff_arr,
-                                                             asymp_infector_arr=asymp_infector_arr,
-                                                             setting_incidence_arr=setting_incidence_arr,
-                                                             exposed_day_infectee=exposed_day_infectee,
-                                                             simpop_day_of_symptom_onset=simpop_day_of_symptom_onset,
-                                                             length_of_infectious_period=length_of_infectious_period,
-                                                             setting_infectee=setting_infectee,
-                                                             hcf_sample_collection_day_arr=hcf_sample_collection_day_arr,
-                                                             untested_non_covid_symp_lack_of_test=untested_non_covid_symp_lack_of_test,
-                                                             total_symp_testing_results=total_symp_testing_results,
-                                                             total_community_testing_results=total_community_testing_results,
-                                                             total_exit_testing_results=total_exit_testing_results,
-                                                             total_daily_quarantine_testing_results=total_daily_quarantine_testing_results,)
+        # save results
+        # save sparse arrays
+        sparse.save_npz("%s/%04d_vtype_infector_to_infectee.npz"%(outfolder, i), vtype_infector_to_infectee.tocsr())
+        sparse.save_npz("%s/%04d_simpop_infection_status.npz"%(outfolder, i), simpop_infection_status.tocsr())
+        sparse.save_npz("%s/%04d_simpop_disease_severity.npz"%(outfolder, i), simpop_disease_severity.tocsr())
+        sparse.save_npz("%s/%04d_simpop_ct_arr.npz"%(outfolder, i), simpop_ct_arr.tocsr())
 
-    # save sparse arrays
-    sparse.save_npz("%s/%04d_eod_test_arr.npz"%(outfolder, i), eod_test_arr.tocsr())
-    sparse.save_npz("%s/%04d_reported_daily_case_arr.npz"%(outfolder, i), reported_daily_case_arr.tocsr())
-    sparse.save_npz("%s/%04d_untested_symp_lack_of_test_arr.npz"%(outfolder, i), untested_symp_lack_of_test_arr.tocsr())
-    sparse.save_npz("%s/%04d_vtype_infector_to_infectee.npz"%(outfolder, i), vtype_infector_to_infectee.tocsr())
+        sparse.save_npz("%s/%04d_hcf_contact_layer_arr.npz"%(outfolder, i), hcf_contact_layer_arr.tocsr())
+        sparse.save_npz("%s/%04d_simpop_agents_w_av.npz"%(outfolder, i), simpop_agents_w_av.tocsr())
+        sparse.save_npz("%s/%04d_simpop_agents_av_benefit.npz"%(outfolder, i), simpop_agents_av_benefit.tocsr())
 
-    sparse.save_npz("%s/%04d_simpop_infection_status.npz"%(outfolder, i), simpop_infection_status.tocsr())
-    sparse.save_npz("%s/%04d_simpop_disease_severity.npz"%(outfolder, i), simpop_disease_severity.tocsr())
-    sparse.save_npz("%s/%04d_simpop_ct_arr.npz"%(outfolder, i), simpop_ct_arr.tocsr())
-    sparse.save_npz("%s/%04d_simpop_postest_setting.npz"%(outfolder, i), simpop_postest_setting.tocsr())
+        if slim == True:
+            np.savez("%s/%04d_sim_result_arrays.npz"%(outfolder, i), weekdays_arr=weekdays_arr,
+                                                                     pmap_age=pmap_age,
+                                                                     pmap_adults_at_risk=pmap_adults_at_risk,
+                                                                     pmap_vacc_status=pmap_vacc_status,
+                                                                     epi_seird_arr=epi_seird_arr,
+                                                                     Reff_arr=Reff_arr,
+                                                                     hcf_sample_collection_day_arr=hcf_sample_collection_day_arr,
+                                                                     asymp_infector_arr=asymp_infector_arr,
+                                                                     setting_incidence_arr=setting_incidence_arr,
+                                                                     exposed_day_infectee=exposed_day_infectee,
+                                                                     simpop_day_of_symptom_onset=simpop_day_of_symptom_onset,
+                                                                     length_of_infectious_period=length_of_infectious_period,
+                                                                     setting_infectee=setting_infectee,
+                                                                     total_symp_testing_results=total_symp_testing_results,
+                                                                     total_selftest_results=total_selftest_results,
+                                                                     )
+        else:
+            np.savez("%s/%04d_sim_result_arrays.npz"%(outfolder, i), weekdays_arr=weekdays_arr,
+                                                                     pmap_age=pmap_age,
+                                                                     pmap_adults_at_risk=pmap_adults_at_risk,
+                                                                     pmap_vacc_status=pmap_vacc_status,
+                                                                     epi_seird_arr=epi_seird_arr,
+                                                                     Reff_arr=Reff_arr,
+                                                                     hcf_sample_collection_day_arr=hcf_sample_collection_day_arr,
+                                                                     asymp_infector_arr=asymp_infector_arr,
+                                                                     setting_incidence_arr=setting_incidence_arr,
+                                                                     exposed_day_infectee=exposed_day_infectee,
+                                                                     simpop_day_of_symptom_onset=simpop_day_of_symptom_onset,
+                                                                     length_of_infectious_period=length_of_infectious_period,
+                                                                     setting_infectee=setting_infectee,
+                                                                     total_symp_testing_results=total_symp_testing_results,
+                                                                     total_selftest_results=total_selftest_results,
+                                                                     epi_isoquar_arr=epi_isoquar_arr,
+                                                                     eod_hcf_tav_stocks=eod_hcf_tav_stocks,
+                                                                     untested_non_covid_symp_lack_of_test=untested_non_covid_symp_lack_of_test,
+                                                                     total_community_testing_results=total_community_testing_results,
+                                                                     total_exit_testing_results=total_exit_testing_results,
+                                                                     total_daily_quarantine_testing_results=total_daily_quarantine_testing_results,
+                                                                     )
 
-    sparse.save_npz("%s/%04d_simpop_isoquar_arr.npz"%(outfolder, i), simpop_isoquar_arr.tocsr())
+            sparse.save_npz("%s/%04d_eod_test_arr.npz"%(outfolder, i), eod_test_arr.tocsr())
+            sparse.save_npz("%s/%04d_reported_daily_case_arr.npz"%(outfolder, i), reported_daily_case_arr.tocsr())
+            sparse.save_npz("%s/%04d_untested_symp_lack_of_test_arr.npz"%(outfolder, i), untested_symp_lack_of_test_arr.tocsr())
 
-    sparse.save_npz("%s/%04d_hcf_contact_layer_arr.npz"%(outfolder, i), hcf_contact_layer_arr.tocsr())
+            sparse.save_npz("%s/%04d_simpop_postest_setting.npz"%(outfolder, i), simpop_postest_setting.tocsr())
+            sparse.save_npz("%s/%04d_simpop_isoquar_arr.npz"%(outfolder, i), simpop_isoquar_arr.tocsr())
 
-    # save prev_tested_entities as json
-    with gzip.open('%s/%04d_prev_tested_entities.json.gz'%(outfolder, i), 'w') as outfile:
-        json_str = json.dumps(prev_tested_entities, cls=NpEncoder) + "\n"
-        json_bytes = json_str.encode('utf-8')
-        outfile.write(json_bytes)
+            # save prev_tested_entities as json
+            with gzip.open('%s/%04d_prev_tested_entities.json.gz'%(outfolder, i), 'w') as outfile:
+                json_str = json.dumps(prev_tested_entities, cls=NpEncoder) + "\n"
+                json_bytes = json_str.encode('utf-8')
+                outfile.write(json_bytes)
+
+    else:
+        # version 1
+        weekdays_arr, pmap_age, epi_seird_arr, epi_isoquar_arr, Reff_arr, asymp_infector_arr, setting_incidence_arr, exposed_day_infectee, simpop_day_of_symptom_onset, length_of_infectious_period, setting_infectee, hcf_sample_collection_day_arr, untested_non_covid_symp_lack_of_test, total_symp_testing_results, total_community_testing_results, total_exit_testing_results, total_daily_quarantine_testing_results, eod_test_arr, reported_daily_case_arr, untested_symp_lack_of_test_arr, vtype_infector_to_infectee, simpop_infection_status, simpop_disease_severity, simpop_ct_arr, simpop_postest_setting, simpop_isoquar_arr, border_crossing_stats, simpop_travel_days, prev_tested_entities, hcf_contact_layer_arr = sim_results
+
+        # save results
+        np.savez("%s/%04d_sim_result_arrays.npz"%(outfolder, i), weekdays_arr=weekdays_arr,
+                                                                 pmap_age=pmap_age,
+                                                                 epi_seird_arr=epi_seird_arr,
+                                                                 epi_isoquar_arr=epi_isoquar_arr,
+                                                                 Reff_arr=Reff_arr,
+                                                                 asymp_infector_arr=asymp_infector_arr,
+                                                                 setting_incidence_arr=setting_incidence_arr,
+                                                                 exposed_day_infectee=exposed_day_infectee,
+                                                                 simpop_day_of_symptom_onset=simpop_day_of_symptom_onset,
+                                                                 length_of_infectious_period=length_of_infectious_period,
+                                                                 setting_infectee=setting_infectee,
+                                                                 hcf_sample_collection_day_arr=hcf_sample_collection_day_arr,
+                                                                 untested_non_covid_symp_lack_of_test=untested_non_covid_symp_lack_of_test,
+                                                                 total_symp_testing_results=total_symp_testing_results,
+                                                                 total_community_testing_results=total_community_testing_results,
+                                                                 total_exit_testing_results=total_exit_testing_results,
+                                                                 total_daily_quarantine_testing_results=total_daily_quarantine_testing_results,)
+
+        # save sparse arrays
+        sparse.save_npz("%s/%04d_eod_test_arr.npz"%(outfolder, i), eod_test_arr.tocsr())
+        sparse.save_npz("%s/%04d_reported_daily_case_arr.npz"%(outfolder, i), reported_daily_case_arr.tocsr())
+        sparse.save_npz("%s/%04d_untested_symp_lack_of_test_arr.npz"%(outfolder, i), untested_symp_lack_of_test_arr.tocsr())
+        sparse.save_npz("%s/%04d_vtype_infector_to_infectee.npz"%(outfolder, i), vtype_infector_to_infectee.tocsr())
+
+        sparse.save_npz("%s/%04d_simpop_infection_status.npz"%(outfolder, i), simpop_infection_status.tocsr())
+        sparse.save_npz("%s/%04d_simpop_disease_severity.npz"%(outfolder, i), simpop_disease_severity.tocsr())
+        sparse.save_npz("%s/%04d_simpop_ct_arr.npz"%(outfolder, i), simpop_ct_arr.tocsr())
+        sparse.save_npz("%s/%04d_simpop_postest_setting.npz"%(outfolder, i), simpop_postest_setting.tocsr())
+
+        sparse.save_npz("%s/%04d_simpop_isoquar_arr.npz"%(outfolder, i), simpop_isoquar_arr.tocsr())
+
+        sparse.save_npz("%s/%04d_hcf_contact_layer_arr.npz"%(outfolder, i), hcf_contact_layer_arr.tocsr())
+
+        # save prev_tested_entities as json
+        with gzip.open('%s/%04d_prev_tested_entities.json.gz'%(outfolder, i), 'w') as outfile:
+            json_str = json.dumps(prev_tested_entities, cls=NpEncoder) + "\n"
+            json_bytes = json_str.encode('utf-8')
+            outfile.write(json_bytes)
 
     return
 
@@ -191,7 +269,7 @@ def simulate(params):
     if params.outdir == None:
         outfname = re.sub("[^A-Za-z0-9\_\-]", "", re.sub('\.xls(x)*$', '', params.input))
         date = dt.date.today().strftime('%Y-%m-%d')
-        outfolder = "./patat-sim_output_%s_%s"%(date, outfname)
+        outfolder = "./patat-sim_v%i_output_%s_%s"%(params.version, date, outfname)
     else:
         outfolder = params.outdir
     if not os.path.isdir(outfolder):
@@ -199,7 +277,7 @@ def simulate(params):
 
     # run bootstrap simulations in parallel
     pool = mp.Pool(processes=params.ncpu)
-    results = [pool.apply_async(run_sim, args=(outfolder, input_pars_dict, params.ndays, params.start_date, i,)) for i in np.arange(params.bootstrap)]
+    results = [pool.apply_async(run_sim, args=(outfolder, input_pars_dict, params.ndays, params.start_date, params.version, params.slim, i,)) for i in np.arange(params.bootstrap)]
     output = [p.get() for p in results]
     pool.close()
     pool.join()
@@ -605,7 +683,7 @@ def make_parser():
     """
     Make argument parser
     """
-    version = "1.0"
+    version = "2.0"
 
     parser = argparse.ArgumentParser(description='PATAT simulator (v%s)'%(version))
     subparsers = parser.add_subparsers()
@@ -617,7 +695,9 @@ def make_parser():
     sim_parser.add_argument('--start_date', type = str, default = '2021-01-01', help = 'start date of simulation')
     sim_parser.add_argument('--bootstrap', type = int, default=1, help='number of boostrap runs')
     sim_parser.add_argument('--ncpu', type = int, default = 1, help='number of threads to run bootstrap runs in parallel')
+    sim_parser.add_argument('--slim', default=False, action='store_true', help='save only essential simulation outputs.')
     sim_parser.add_argument('--outdir', type = str, help='optional output directory path')
+    sim_parser.add_argument('--version', type = int, default=1, help='version of PATAT to run.')
     sim_parser.set_defaults(func=simulate)
 
     # genomic surveillance
