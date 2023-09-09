@@ -16,7 +16,7 @@ The analyses codes for this study can be found as a Jupyter Notebook [here](http
 
 PATAT can also simulate the spread of up to two SARS-CoV-2 variants with different viral and transmission properties (e.g. incubation and infection periods, maximum within-host viral load, disease severity, relative transmissibility, etc.). We have used PATAT to investigate how testing capacities, sampling coverage and sequencing proportions jointly impact the effectiveness of pathogen surveillance.  
 
-The original scientific paper describing PATAT and this work is published in _Nature Genetics_ and can be found [here](SARS-CoV-2 diagnostic testing rates determine the sensitivity of genomic surveillance programs):
+The original scientific paper describing PATAT and this work is published in _Nature Genetics_ and can be found [here](https://www.nature.com/articles/s41588-022-01267-w):
 > SARS-CoV-2 diagnostic testing rates determine the sensitivity of genomic surveillance programs. Alvin X. Han, Amy Toporowski, Jilian A. Sacks, Mark D. Perkins, Sylvie Briand, Maria van Kerkhove, Emma Hannay, Sergio Carmona, Bill Rodriguez, Edyth Parker, Brooke E. Nichols, Colin A. Russell. (2023). Nature Genetics, 55, 26–33.
 
 The custom codes to reproduce the analysis of this paper can be found as a Jupyter Notebook [here](https://github.com/AMC-LAEB/PATAT-sim/blob/main/projects/surveillance/han-et-al_genome_surveillance_lmics.ipynb). Similarly, as the raw simulation data are extremely large in size (>400Gb), we have provided processed data files/folders (which still total to >20Gb) that can be download them separately [here](https://doi.org/10.5281/zenodo.7245329). Unzip and have all processed data files/folders in the same directory as the Jupyter Notebook before running it.  
